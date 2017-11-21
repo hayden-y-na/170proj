@@ -1,3 +1,5 @@
+# Created 2017 by Cameron Abrams
+
 import sys
 import random
 import pickle
