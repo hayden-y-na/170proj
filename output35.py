@@ -19,10 +19,29 @@ def main(argv):
 
     count = 0
     numSat, numFail = conSat(names, constraints)
-    while numSat < (19 * len(constraints)) / 20:
+    while numSat < (49 * len(constraints)) / 50:
         count += 1
+        for i in range(len(names)):
+            lst = list(range(len(names)))
+            lst.remove(i)
+            for j in lst:
+                newNames = move(names, i, j)
+                newNumSat, newFail = conSat(newNames, constraints)
+                if newNumSat > numSat:
+                    numSat = newNumSat
+                    names = newNames
+                    break
+
+        """
         x = random.randint(0, len(names) - 1)
         y = random.randint(0, len(names) - 1)
+        y = random.randint(x - (len(names) / 5), x + (len(names) / 5))
+        if y < 0:
+            y = 0
+        elif y > len(names) - 1:
+            y = len(names) - 1
+        """
+        """
         newNames = move(names, x, y)
         #newNames = move(newNames, y, x)
         newNumSat, newFail = conSat(newNames, constraints)
@@ -31,15 +50,19 @@ def main(argv):
             names = newNames
         elif (count % 50000 == 0):
             print("epoch reached")
+            names.reverse()
+        """
+        """ 
             x = random.randint(0, len(names) - 1)
             y = random.randint(0, len(names) - 1)
             newNames = list(names)
             for i in range(x, y):
                 newNames = move(newNames, i, random.randint(0, len(names) - 1))
-            newNumSat, newFail = conSat(newNames, constraints)
-            if newNumSat > numSat:
-                numSat = newNumSat
-                names = newNames
+                newNumSat, newFail = conSat(newNames, constraints)
+                if newNumSat > numSat:
+                    numSat = newNumSat
+                    names = newNames
+            """
 
     #names = maxSat(names, constraints)
 
