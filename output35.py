@@ -19,7 +19,7 @@ def main(argv):
 
     count = 0
     numSat, numFail = conSat(names, constraints)
-    while numSat < (49 * len(constraints)) / 50:
+    while numSat < len(constraints):
         count += 1
         for i in range(len(names)):
             lst = list(range(len(names)))
@@ -31,6 +31,9 @@ def main(argv):
                     numSat = newNumSat
                     names = newNames
                     break
+        if (count % 50000 == 0):
+            print("epoch reached")
+            random.shuffle(names)
 
         """
         x = random.randint(0, len(names) - 1)

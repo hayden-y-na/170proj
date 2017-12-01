@@ -5,17 +5,21 @@ import atexit
 import pickle
 
 
+names = list()
+contraints = list()
+
 def main(argv):
     inputFile = open('inputs/' + argv + '.in', 'r')
     numWizards = int(inputFile.readline())
     numConstraints = int(inputFile.readline())
     global names
-    names = list(createSet(inputFile, numWizards))
+    names = pickle.load(open("bestSoFar/output" + argv[-4:-2], 'rb'))
 
     inputFile = open('inputs/' + argv + '.in', 'r')
     numWizards = int(inputFile.readline())
     numConstraints = int(inputFile.readline())
     
+    global constraints
     constraints = list()
     for line in inputFile:
         triple = re.sub("[^\w]", " ", line).split()
@@ -29,7 +33,7 @@ def main(argv):
         numSat, numFail = conSat(names, constraints)
     print("Number satisfied before maxSat called: " + str(numSat))
 
-    names = maxSat(names, constraints)
+    names = maxSat()
 
     print("num constraints: " + str(len(constraints)))
     outputFile = open('outputs/output' + argv[-4:] + '.out', 'w') 
@@ -44,7 +48,9 @@ def main(argv):
     print("Number Failed: " + str(len(numFailed)))
 
 
-def maxSat(names, constraints):
+def maxSat():
+    global names
+    global constraints
     numSat, failed = conSat(names, constraints)
     if (numSat == len(constraints)):
         return names
@@ -63,7 +69,7 @@ def maxSat(names, constraints):
                         numSat = newNumSat
                         names = newNames
                         names.reverse()
-                        return maxSat(names, constraints)
+                        return maxSat()
 
 def dumpNames():
    f = open("bestSoFar/output" + str(len(names)), 'wb') 

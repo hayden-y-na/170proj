@@ -18,11 +18,15 @@ def main(argv):
         constraints.append(triple) 
 
     numSat, numFail = conSat(names, constraints)
+    
     while numSat < (4 * numConstraints) / 5:
     #while numSat < numConstraints:
         random.shuffle(names)
+        #random.sample(names, len(names))
         numSat, numFail = conSat(names, constraints)
+    print("Number satisfied before maxSat called: " + numSat)
 
+    names = maxSat(names, constraints)
 
     print("num constraints: " + str(len(constraints)))
     outputFile = open('outputs/output' + argv[-4:] + '.out', 'w') 
@@ -34,7 +38,61 @@ def main(argv):
 
     numPassed, numFailed = conSat(names, constraints)
     print("Number Passed: " + str(numPassed))
-    print("Number Failed: " + str(numFailed))
+    print("Number Failed: " + str(len(numFailed)))
+
+
+def maxSat(names, constraints):
+    sat, failed = conSat(names, constraints)
+    if len(failed) == 0:
+        return names
+    else:
+        constraint = failed.pop()
+        wiz_a = names.index(constraint[0])
+        wiz_b = names.index(constraint[1])
+        wiz_c = names.index(constraint[2])
+        for wizard in [wiz_a, wiz_b, wiz_c]:
+            for i in range(len(names)):
+                newNames = move(names, wizard, i)
+                satNew, failedNew = conSat(newNames, constraints)
+                if (satNew > sat):
+                    return maxSat(newNames, constraints)
+        names = switch(names, wiz_a, wiz_b)
+        return maxSat(names, constraints)
+
+
+
+def move(lst, toMove, index):
+    newLst = list(lst)
+    name = newLst[toMove]
+    newLst.remove(name)
+    newLst.insert(index, name)
+    return newLst
+
+
+
+def switch(lst, index0, index1):
+    if (index0 < 0 or index1 < 0):
+        return list(lst)
+    if (index0 >= len(lst) or index1 >= len(lst)):
+        return list(lst)
+    lst = list(lst)
+    x = lst[index0]
+    lst[index0] = lst[index1]
+    lst[index1] = x
+    return lst
+
+
+def allSat(names, constraints):
+    numPassed = 0
+    for constraint in constraints:
+        wiz_a = names.index(constraint[0])
+        wiz_b = names.index(constraint[1])
+        wiz_c = names.index(constraint[2])
+        if (wiz_a < wiz_c < wiz_b) or (wiz_b < wiz_c < wiz_a):
+            numFailed.append(constraint)
+        else:
+            numPassed += 1
+    return numPassed == len(constraints)
 
 
 def createSet(f, numWiz):
@@ -87,14 +145,14 @@ def writeNames(argv, names):
     f.close()
 
 def conSat(names, constraints):
-    numFailed = 0
+    numFailed = list()
     numPassed = 0
     for constraint in constraints:
         wiz_a = names.index(constraint[0])
         wiz_b = names.index(constraint[1])
         wiz_c = names.index(constraint[2])
         if (wiz_a < wiz_c < wiz_b) or (wiz_b < wiz_c < wiz_a):
-            numFailed += 1
+            numFailed.append(constraint)
         else:
             numPassed += 1
     return numPassed, numFailed
