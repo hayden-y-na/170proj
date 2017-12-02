@@ -19,12 +19,26 @@ class orderAnnealer(Annealer):
         super(orderAnnealer, self).__init__(state)  # important!
 
     def move(self):
+        rand = random.random()
+        if rand < 0.5:
+            self.shiftMove()
+        else: 
+            self.randMove()
+
+        
+
+    def shiftMove(self):
         index1 = random.randrange(0, len(self.state))
         index2 = random.randrange(0, len(self.state))
 
         temp = self.state[index1]
         self.state[index1] = self.state[index2]
         self.state[index2] = temp
+
+    def randMove(self):
+        index1 = random.randrange(0, len(self.state))
+        self.state = [self.state[index1]] + self.state[0:index1] + self.state[index1 + 1:]
+
      
     def energy(self):
         numFailed = 0
@@ -57,10 +71,14 @@ def solve(num_wizards, num_constraints, wizards, constraints):
     init_state = startWizards(wizards, constraints)
 
     op = orderAnnealer(init_state, constraints)
-    op.steps = 1000000
+    auto_schedule = op.auto(minutes=5)
+    op.set_schedule(auto_schedule) 
+
     # since our state is just a list, slice is the fastest way to copy
     op.copy_strategy = "slice"
     state, e = op.anneal()
+
+    print("\nNumber Passed: " + str(num_constraints - e))
 
 
     return wizards
