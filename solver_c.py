@@ -12,7 +12,9 @@ def main(argv):
 
     # Check if we already have a good list of names saved.
     try:
-        names = pickle.load(open("bestSoFar/output" + argv[-4:], 'rb'))
+        f = open("bestSoFar/output" + argv[-4:], 'rb')
+        names = pickle.load(f)
+        f.close()
     except:
         names = list(createSet(inputFile, numWizards))
     inputFile.close()    
@@ -66,7 +68,7 @@ def maxSat(names, constraints, filename):
     numSat, failed = conSat(names, constraints)
     if (numSat == len(constraints)):
         return
-    while numSat < (19 * len(constraints)) / 20:
+    while numSat < ((19 * len(constraints)) / 20):
         constraint = failed.pop()
         posA = random.randint(0, len(names) - 1)
         posB = random.randint(0, len(names) - 1)
@@ -86,20 +88,52 @@ def maxSat(names, constraints, filename):
             minimum = min(posA, posB)
             posC = random.randint(minimum, maximum - 1)
 
-        if (random.random() < 0.5):
+        prob = random.random()
+        if (prob < 0.5):
             newNames = move(names, names.index(constraint[0]), posA)
             newNames = move(newNames, names.index(constraint[1]), posB)
             newNames = move(newNames, names.index(constraint[2]), posC)
             newNumSat, newFail = conSat(newNames, constraints)
 
             chance = random.random()
-            if (chance < 0.75):
+            if (chance < 0.95):
                 limit = numSat
-            elif (chance > 0.75 and chance <= 0.8):
+            elif (chance < 0.99):
                 limit = numSat - (len(constraints) / 10)
+            elif (chance < 0.999):
+                limit = 0
             else:
                 limit = numSat - (len(constraints) / 100)
-                
+
+            if newNumSat > limit:
+                print("New number of contraints satisfied: " + str(newNumSat))
+                numSat = newNumSat
+                names = newNames
+                f = open("bestSoFar/output" + filename[-4:], 'w+b') 
+                pickle.dump(names, f)
+                f.close()
+                failed = newFail
+                if (random.random() < 0.5):
+                    names.reverse()
+            else:
+                failed.append(constraint)
+        elif prob < 0.6:
+            for i in range(random.randint(0, len(names) - 1)):
+                wizard = random.randint(0, len(names) - 1)
+                index = random.randint(0, len(names) - 1)
+                newNames = move(names, wizard, index)
+                newNumSat, newFail = conSat(newNames, constraints)
+
+            chance = random.random()
+            if (chance < 0.95):
+                limit = numSat
+            elif (chance < 0.99):
+                limit = numSat - (len(constraints) / 10)
+            elif (chance < 0.999):
+                limit = 0
+            else:
+                limit = numSat - (len(constraints) / 100)
+
             if newNumSat > limit:
                 print("New number of contraints satisfied: " + str(newNumSat))
                 numSat = newNumSat
