@@ -16,28 +16,33 @@ class orderAnnealer(Annealer):
     def __init__(self, state, constraints):
         self.state = state
         self.constraints = constraints
+        self.immutableconstraints = constraints
         super(orderAnnealer, self).__init__(state)  # important!
 
     def move(self):
-        rand = random.random()
-        if rand < 0.5:
-            self.shiftMove()
-        else: 
-            self.randMove()
+        index = random.randrange(0, len(self.state))
+        bestWizards = []
+        bestEnergy = 500
 
-        
-
-    def shiftMove(self):
-        index1 = random.randrange(0, len(self.state))
-        index2 = random.randrange(0, len(self.state))
-
-        temp = self.state[index1]
-        self.state[index1] = self.state[index2]
-        self.state[index2] = temp
-
-    def randMove(self):
-        index1 = random.randrange(0, len(self.state))
-        self.state = [self.state[index1]] + self.state[0:index1] + self.state[index1 + 1:]
+        for i in range(0, len(self.state)):
+            tempWizards = list(self.state)
+            wizard = tempWizards.pop(index)
+            tempWizards.insert(i, wizard)
+            tempEnergy = self.get_fitness(tempWizards)
+            if tempEnergy < bestEnergy:
+                bestEnergy = tempEnergy
+                bestWizards = tempWizards
+        print(bestEnergy)
+        f = open("currentOutput", "w")
+        string = ""
+        for wizard in bestWizards:
+            string += wizard + " "
+        f.write(string)
+        f.close()
+        if (bestEnergy == 0):
+            print("WOAH")
+            sys.exit()
+        self.state = bestWizards
 
      
     def energy(self):
@@ -52,6 +57,20 @@ class orderAnnealer(Annealer):
             else:
                 numPassed += 1
         return numFailed
+
+    def get_fitness(self, wizards):
+        numFailed = 0
+        numPassed = 0
+        for constraint in self.immutableconstraints:
+            wiz_a = wizards.index(constraint[0])
+            wiz_b = wizards.index(constraint[1])
+            wiz_c = wizards.index(constraint[2])
+            if (wiz_a < wiz_c < wiz_b) or (wiz_b < wiz_c < wiz_a):
+                numFailed += 1
+            else:
+                numPassed += 1
+        return numFailed
+
 
 
 
