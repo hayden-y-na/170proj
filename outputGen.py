@@ -66,8 +66,9 @@ def maxSat(names, constraints):
                         return maxSat(names, constraints)
 
 def dumpNames():
-   f = open("bestSoFar/output" + str(len(names)), 'wb') 
-   pickle.dump(names, f)
+    global names
+    f = open("bestSoFar/output" + str(len(names)), 'wb') 
+    pickle.dump(names, f)
 
 atexit.register(dumpNames)
 

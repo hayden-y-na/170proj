@@ -4,15 +4,13 @@ import random
 import atexit
 import pickle
 
-
 names = list()
-contraints = list()
+constraints = list()
 
 def main(argv):
     inputFile = open('inputs/' + argv + '.in', 'r')
     numWizards = int(inputFile.readline())
     numConstraints = int(inputFile.readline())
-    global names
     names = pickle.load(open("bestSoFar/output" + argv[-4:-2], 'rb'))
 
     inputFile = open('inputs/' + argv + '.in', 'r')
@@ -20,7 +18,6 @@ def main(argv):
     numConstraints = int(inputFile.readline())
     
     global constraints
-    constraints = list()
     for line in inputFile:
         triple = re.sub("[^\w]", " ", line).split()
         constraints.append(triple) 
@@ -33,7 +30,7 @@ def main(argv):
         numSat, numFail = conSat(names, constraints)
     print("Number satisfied before maxSat called: " + str(numSat))
 
-    names = maxSat()
+    maxSat(names, constraints)
 
     print("num constraints: " + str(len(constraints)))
     outputFile = open('outputs/output' + argv[-4:] + '.out', 'w') 
@@ -48,34 +45,59 @@ def main(argv):
     print("Number Failed: " + str(len(numFailed)))
 
 
-def maxSat():
-    global names
-    global constraints
+def maxSat(names, contraints):
     numSat, failed = conSat(names, constraints)
     if (numSat == len(constraints)):
-        return names
-    while numSat < len(constraints):
+        return
+    while numSat < (19 * len(constraints)) / 20:
         constraint = failed.pop()
-        for j in range(len(names)):
-            for k in range(len(names)):
-                for l in range (len(names)):
-                    newNames = move(names, names.index(constraint[0]), j)
-                    newNames = move(newNames, names.index(constraint[1]), k)
-                    newNames = move(newNames, names.index(constraint[2]), l)
-                    newNumSat, newFail = conSat(newNames, constraints)
-                    failed = newFail
-                    if newNumSat > numSat:
-                        print("New number of contraints satisfied: " + str(newNumSat))
-                        numSat = newNumSat
-                        names = newNames
-                        names.reverse()
-                        return maxSat()
+        posA = random.randint(0, len(names) - 1)
+        posB = random.randint(0, len(names) - 1)
+        if (posA == posB):
+            posB = random.randint(0, len(names) - 1)
 
+        prob = random.random()
+        if (prob < 0.5):
+            minimum = min(posA, posB)
+            if minimum == 0:
+                minimum = 1
+            posC = random.randint(0, minimum - 1)
+            if posC < 0:
+                posC = 0
+        else:
+            maximum = max(posA, posB)
+            if maximum == 0:
+                maximum = 1
+            posC = random.randint(0, maximum - 1)
+
+        if (random.random() < 0.5):
+            newNames = move(names, names.index(constraint[0]), posA)
+            newNames = move(newNames, names.index(constraint[1]), posB)
+            newNames = move(newNames, names.index(constraint[2]), posC)
+            newNumSat, newFail = conSat(newNames, constraints)
+            if newNumSat > numSat:
+                print("New number of contraints satisfied: " + str(newNumSat))
+                numSat = newNumSat
+                names = newNames
+                f = open("bestSoFar/output" + str(len(names)), 'w+b') 
+                pickle.dump(names, f)
+                f.close()
+                names.reverse()
+                failed = newFail
+            else:
+                failed.append(constraint)
+        else:
+            names = shift(names, random.randint(0, len(names) - 2))
+            failed.append(constraint)
+
+
+@atexit.register
 def dumpNames():
-   f = open("bestSoFar/output" + str(len(names)), 'wb') 
-   pickle.dump(names, f)
+    f = open("bestSoFar/output" + str(len(names)), 'w+b') 
+    pickle.dump(names, f)
+    f.close()
 
-atexit.register(dumpNames)
+#atexit.register(dumpNames)
 
 def move(lst, toMove, index):
     newLst = list(lst)
@@ -84,7 +106,11 @@ def move(lst, toMove, index):
     newLst.insert(index, name)
     return newLst
 
-
+def shift(lst, numShifts):
+    while (numShifts > 0):
+        lst = move(lst, len(lst) - 1, 0)
+        numShifts -= 1
+    return lst
 
 def switch(lst, index0, index1):
     if (index0 < 0 or index1 < 0):
@@ -177,3 +203,19 @@ def conSat(names, constraints):
 
 if __name__ == "__main__":
     main(sys.argv[1])
+    """
+    for j in range(len(names)):
+        for k in range(len(names)):
+            for l in range (len(names)):
+                newNames = move(names, names.index(constraint[0]), j)
+                newNames = move(newNames, names.index(constraint[1]), k)
+                newNames = move(newNames, names.index(constraint[2]), l)
+                newNumSat, newFail = conSat(newNames, constraints)
+                failed = newFail
+                if newNumSat > numSat:
+                    print("New number of contraints satisfied: " + str(newNumSat))
+                    numSat = newNumSat
+                    names = newNames
+                    names.reverse()
+                    return maxSat()
+    """

@@ -96,8 +96,8 @@ def maxSat(names, constraints, filename):
             newNumSat, newFail = conSat(newNames, constraints)
 
             chance = random.random()
-            if (chance < 0.95):
-                limit = numSat
+            if (chance < 1):
+                limit = numSat + 5
             elif (chance < 0.99):
                 limit = numSat - (len(constraints) / 10)
             elif (chance < 0.999):
@@ -125,8 +125,8 @@ def maxSat(names, constraints, filename):
                 newNumSat, newFail = conSat(newNames, constraints)
 
             chance = random.random()
-            if (chance < 0.95):
-                limit = numSat
+            if (chance < 1):
+                limit = numSat + 5
             elif (chance < 0.99):
                 limit = numSat - (len(constraints) / 10)
             elif (chance < 0.999):
