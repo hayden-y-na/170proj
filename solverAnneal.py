@@ -23,13 +23,15 @@ class orderAnnealer(Annealer):
         index = random.randrange(0, len(self.state))
         bestWizards = []
         bestEnergy = 500
-
         for i in range(0, len(self.state)):
+            if i == index:
+                continue
+            rand = random.random()
             tempWizards = list(self.state)
             wizard = tempWizards.pop(index)
             tempWizards.insert(i, wizard)
             tempEnergy = self.get_fitness(tempWizards)
-            if tempEnergy < bestEnergy:
+            if tempEnergy < bestEnergy and rand > 0.01:
                 bestEnergy = tempEnergy
                 bestWizards = tempWizards
         print(bestEnergy)
